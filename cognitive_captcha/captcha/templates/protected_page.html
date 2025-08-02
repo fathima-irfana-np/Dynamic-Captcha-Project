@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Welcome to Our Website</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6e8efb;
+      --primary-light: #8da6ff;
+      --primary-dark: #4d76e8;
+      --secondary: #a777e3;
+      --accent: #ff6b6b;
+      --dark: #2c3e50;
+      --light: #f8f9fa;
+      --success: #20c997;
+      --warning: #ffc107;
+      --info: #17a2b8;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+      color: var(--dark);
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+    
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 80px 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    
+    header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 30%, rgba(255,255,255,0.1) 0%, transparent 20%),
+        radial-gradient(circle at 80% 70%, rgba(255,255,255,0.1) 0%, transparent 20%);
+      z-index: 1;
+    }
+    
+    .header-content {
+      position: relative;
+      z-index: 2;
+    }
+    
+    h1 {
+      margin: 0 0 15px;
+      font-size: 3rem;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      animation: fadeInDown 1s ease;
+    }
+    
+    .tagline {
+      font-size: 1.3rem;
+      opacity: 0.9;
+      max-width: 700px;
+      margin: 0 auto;
+      animation: fadeInUp 1s ease 0.3s both;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 20px;
+    }
+    
+    .content {
+      background: white;
+      padding: 40px;
+      border-radius: 15px;
+      margin: 40px 0;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .content:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+    }
+    
+    .content::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 5px;
+      height: 100%;
+      background: linear-gradient(to bottom, var(--primary), var(--secondary));
+      transition: width 0.3s ease;
+    }
+    
+    .content:hover::after {
+      width: 8px;
+    }
+    
+    .features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      margin-top: 40px;
+    }
+    
+    .feature-card {
+      flex: 1;
+      min-width: 280px;
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      transform: translateY(30px);
+      opacity: 0;
+      transition: transform 0.6s ease, opacity 0.6s ease, box-shadow 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+    
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(110,142,251,0.05) 0%, rgba(167,119,227,0.05) 100%);
+      z-index: -1;
+    }
+    
+    .feature-card.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    
+    .feature-card:hover {
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .feature-icon {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      color: white;
+      font-size: 24px;
+      box-shadow: 0 5px 15px rgba(110,142,251,0.3);
+    }
+    
+    .feature-card h3 {
+      font-size: 1.4rem;
+      margin-bottom: 15px;
+      color: var(--dark);
+    }
+    
+    .feature-card p {
+      color: #666;
+      line-height: 1.6;
+    }
+    
+    /* CAPTCHA Overlay Styles */
+    .captcha-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .captcha-container {
+      background-color: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      max-width: 600px;
+      width: 90%;
+      text-align: center;
+      animation: fadeInUp 0.5s ease;
+    }
+    
+    .captcha-title {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      color: var(--dark);
+    }
+    
+    #storyCanvas {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin: 0 auto 20px;
+      display: block;
+      background-color: #f5f7fa;
+    }
+    
+    .captcha-question {
+      font-size: 1.2rem;
+      margin-bottom: 20px;
+    }
+    
+    .captcha-options {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .captcha-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 50px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    
+    .captcha-btn:hover {
+      background: var(--secondary);
+      transform: translateY(-2px);
+    }
+    
+    .captcha-result {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 5px;
+      display: none;
+    }
+    
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    
+    .btn {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      font-weight: 600;
+      font-family: 'Poppins', sans-serif;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 5px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.5);
+      opacity: 0;
+      border-radius: 100%;
+      transform: scale(1, 1) translate(-50%, -50%);
+      transform-origin: 50% 50%;
+    }
+    
+    .btn:focus:not(:active)::after {
+      animation: ripple 0.6s ease-out;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      box-shadow: 0 5px 15px rgba(110,142,251,0.4);
+    }
+    
+    .btn-primary:hover {
+      background: linear-gradient(135deg, var(--primary-dark), var(--secondary));
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(110,142,251,0.5);
+    }
+    
+    .welcome-message {
+      text-align: center;
+      margin: 60px 0;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 1s ease, transform 1s ease;
+      position: relative;
+    }
+    
+    .welcome-message::before {
+      content: '';
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 3px;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      border-radius: 3px;
+    }
+    
+    .welcome-message.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .welcome-message h2 {
+      font-size: 2.2rem;
+      margin-bottom: 15px;
+      color: var(--dark);
+    }
+    
+    .welcome-message p {
+      font-size: 1.1rem;
+      color: #666;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    
+    form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    
+    input[type="email"] {
+      padding: 15px 20px;
+      width: 350px;
+      max-width: 100%;
+      border: 2px solid #ddd;
+      border-radius: 50px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+    
+    input[type="email"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(110,142,251,0.2);
+    }
+    
+    .floating-shapes {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 0;
+      pointer-events: none;
+    }
+    
+    .shape {
+      position: absolute;
+      opacity: 0.1;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      filter: blur(20px);
+      animation: float 15s infinite linear;
+    }
+    
+    .shape:nth-child(1) {
+      width: 300px;
+      height: 300px;
+      top: -100px;
+      left: -100px;
+      animation-delay: 0s;
+    }
+    
+    .shape:nth-child(2) {
+      width: 200px;
+      height: 200px;
+      bottom: -50px;
+      right: -50px;
+      animation-delay: 3s;
+      animation-duration: 20s;
+    }
+    
+    .shape:nth-child(3) {
+      width: 150px;
+      height: 150px;
+      top: 30%;
+      right: -50px;
+      animation-delay: 6s;
+      animation-duration: 25s;
+    }
+    
+    .shape:nth-child(4) {
+      width: 250px;
+      height: 250px;
+      bottom: -100px;
+      left: 20%;
+      animation-delay: 9s;
+      animation-duration: 18s;
+    }
+    
+    @keyframes float {
+      0% {
+        transform: translateY(0) rotate(0deg);
+      }
+      50% {
+        transform: translateY(-50px) rotate(180deg);
+      }
+      100% {
+        transform: translateY(0) rotate(360deg);
+      }
+    }
+    
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes ripple {
+      0% {
+        transform: scale(0, 0);
+        opacity: 1;
+      }
+      20% {
+        transform: scale(25, 25);
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+        transform: scale(40, 40);
+      }
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2.2rem;
+      }
+      
+      .tagline {
+        font-size: 1.1rem;
+      }
+      
+      .content {
+        padding: 25px;
+      }
+      
+      .feature-card {
+        min-width: 100%;
+      }
+      
+      form {
+        flex-direction: column;
+      }
+      
+      input[type="email"] {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Floating background shapes -->
+  <div class="floating-shapes">
+    <div class="shape"></div>
+    <div class="shape"></div>
+    <div class="shape"></div>
+    <div class="shape"></div>
+  </div>
+
+  <header>
+    <div class="header-content">
+      <h1>Welcome to Our Website</h1>
+      <p class="tagline">Your journey to amazing experiences starts here</p>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="welcome-message" id="welcomeMsg">
+      <h2>Hello there! <span class="wave">👋</span></h2>
+      <p>We're thrilled to have you here. Explore our world of innovative solutions designed just for you.</p>
+    </div>
+
+    <div class="content">
+      <h2>Discover Our Features</h2>
+      <div class="features">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-rocket"></i>
+          </div>
+          <h3>Lightning Fast</h3>
+          <p>Experience blazing fast performance with our optimized technology stack that ensures minimal loading times.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <h3>Secure & Private</h3>
+          <p>Your data's security is our top priority with enterprise-grade encryption and privacy controls.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-cogs"></i>
+          </div>
+          <h3>Customizable</h3>
+          <p>Tailor the experience to your needs with our extensive customization options and settings.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <h2>Stay Connected</h2>
+      <p>Subscribe to our newsletter for the latest updates, special offers, and exclusive content.</p>
+      <form id="newsletterForm">
+        <input type="email" placeholder="Your email address" required>
+        <button type="submit" class="btn btn-primary">Subscribe Now</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- CAPTCHA Overlay -->
+  <div class="captcha-overlay" id="captchaOverlay">
+    <div class="captcha-container">
+      <h2 class="captcha-title">Human Verification</h2>
+      <canvas id="storyCanvas" width="500" height="300"></canvas>
+      
+      <div id="questionPanel" style="display: none;">
+        <p class="captcha-question" id="questionText"></p>
+        <div class="captcha-options" id="options"></div>
+      </div>
+      
+      <div class="captcha-result" id="resultMessage"></div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Welcome message animation
+      const welcomeMsg = document.getElementById('welcomeMsg');
+      setTimeout(() => welcomeMsg.classList.add('show'), 500);
+      
+      // Wave animation
+      const wave = document.querySelector('.wave');
+      let angle = 0;
+      const waveInterval = setInterval(() => {
+        angle += 10;
+        wave.style.transform = `rotate(${Math.sin(angle * Math.PI / 180) * 20}deg)`;
+      }, 50);
+      
+      // Feature cards intersection animation
+      const cards = document.querySelectorAll('.feature-card');
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('show');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+      
+      cards.forEach(card => observer.observe(card));
+      
+      // Newsletter form
+      document.getElementById('newsletterForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const email = e.target.querySelector('input').value;
+        showToast(`Thanks for subscribing with ${email}!`, 'success');
+        e.target.reset();
+        
+        // Add animation to button
+        const btn = e.target.querySelector('button');
+        btn.innerHTML = '<i class="fas fa-check"></i> Subscribed!';
+        setTimeout(() => {
+          btn.innerHTML = 'Subscribe Now';
+        }, 2000);
+      });
+      
+      // CAPTCHA System
+      let captchaTriggered = false;
+      
+      // Click handler for the entire body (will be removed after first click)
+      document.body.addEventListener('click', triggerCaptcha, { once: true });
+      
+      function triggerCaptcha() {
+        if (captchaTriggered) return;
+        captchaTriggered = true;
+        
+        const overlay = document.getElementById('captchaOverlay');
+        overlay.style.display = 'flex';
+        
+        // Load CAPTCHA challenge
+        loadCaptcha();
+      }
+      
+      async function loadCaptcha() {
+        try {
+          // In a real implementation, this would fetch from your backend
+          // For demo purposes, we'll use mock data that matches your captcha.js format
+          const mockData = {
+            id: "12345",
+            animation_data: {
+              actors: [
+                { color: "red", delay: 0 },
+                { color: "blue", delay: 2 },
+                { color: "green", delay: 4 }
+              ]
+            },
+            question: "Which color moved first?",
+            options: ["red", "blue", "green"],
+            correct_answer: "red"
+          };
+          
+          // Simulate API call
+          // let res = await fetch('/get/');
+          // let data = await res.json();
+          
+          runStory(mockData.animation_data, () => {
+            showQuestion(mockData);
+          });
+          
+        } catch (error) {
+          console.error('Error loading CAPTCHA:', error);
+          showResult('Error loading CAPTCHA. Please try again.', false);
+        }
+      }
+      
+      function runStory(animationData, callback) {
+        let canvas = document.getElementById('storyCanvas');
+        let ctx = canvas.getContext('2d');
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Set background
+        ctx.fillStyle = "#f5f7fa";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        let actors = animationData.actors.map(actor => {
+          return {
+            color: actor.color,
+            x: 0,
+            y: 150,
+            delay: actor.delay ? actor.delay * 1000 : 0,
+            active: false
+          };
+        });
+        
+        let startTime = Date.now();
+        let animationFrameId;
+        
+        function animate() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          
+          // Draw background
+          ctx.fillStyle = "#f5f7fa";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
+          actors.forEach(actor => {
+            if (Date.now() - startTime >= actor.delay) {
+              actor.active = true;
+              if (actor.x < 400) {
+                actor.x += 2; // speed of movement
+              }
+              ctx.fillStyle = actor.color;
+              ctx.fillRect(actor.x, actor.y, 50, 50);
+            }
+          });
+          
+          let allStopped = actors.every(a => a.x >= 400);
+          
+          if (!allStopped) {
+            animationFrameId = requestAnimationFrame(animate);
+          } else {
+            // Show question after a delay
+            setTimeout(callback, 1000);
+          }
+        }
+        
+        animate();
+      }
+      
+      function showQuestion(data) {
+        document.getElementById('questionPanel').style.display = 'block';
+        document.getElementById('questionText').innerText = data.question;
+        
+        let optionsDiv = document.getElementById('options');
+        optionsDiv.innerHTML = "";
+        
+        data.options.forEach(opt => {
+          let btn = document.createElement('button');
+          btn.className = 'captcha-btn';
+          btn.innerText = opt;
+          btn.onclick = () => submitAnswer(data.id, opt);
+          optionsDiv.appendChild(btn);
+        });
+      }
+      
+      async function submitAnswer(id, answer) {
+        try {
+          // In a real implementation, this would POST to your backend
+          // For demo purposes, we'll simulate the response
+          // let res = await fetch('/submit/', {
+          //   method: 'POST',
+          //   headers: { 'Content-Type': 'application/json' },
+          //   body: JSON.stringify({ id: id, answer: answer })
+          // });
+          // let result = await res.json();
+          
+          const mockResult = { status: answer === "red" ? "passed" : "failed" };
+          
+          if (mockResult.status === "passed") {
+            showResult("Verification successful! Welcome!", true);
+            setTimeout(() => {
+              document.getElementById('captchaOverlay').style.display = 'none';
+              // In real implementation: window.location.href = "/protected/";
+            }, 1500);
+          } else {
+            showResult("Verification failed. Please try again.", false);
+            setTimeout(() => {
+              loadCaptcha();
+            }, 1500);
+          }
+        } catch (error) {
+          console.error('Error submitting answer:', error);
+          showResult("Error submitting answer. Please try again.", false);
+        }
+      }
+      
+      function showResult(message, isSuccess) {
+        const resultDiv = document.getElementById('resultMessage');
+        resultDiv.textContent = message;
+        resultDiv.className = `captcha-result ${isSuccess ? 'success' : 'error'}`;
+        resultDiv.style.display = 'block';
+      }
+      
+      // Toast helper
+      function showToast(msg, type = 'info') {
+        const toast = document.createElement('div');
+        toast.textContent = msg;
+        toast.style.position = 'fixed';
+        toast.style.bottom = '20px';
+        toast.style.right = '20px';
+        toast.style.background = type === 'success' ? '#28a745' : 
+                               type === 'warning' ? '#ffc107' : 
+                               type === 'error' ? '#dc3545' : '#17a2b8';
+        toast.style.color = '#fff';
+        toast.style.padding = '15px 25px';
+        toast.style.borderRadius = '8px';
+        toast.style.zIndex = '1000';
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.5s, transform 0.5s';
+        toast.style.transform = 'translateY(20px)';
+        toast.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
+        toast.style.fontWeight = '500';
+        document.body.appendChild(toast);
+        
+        requestAnimationFrame(() => {
+          toast.style.opacity = '1';
+          toast.style.transform = 'translateY(0)';
+        });
+        
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(20px)';
+          setTimeout(() => document.body.removeChild(toast), 500);
+        }, 3000);
+      }
+    });
+  </script>
+</body>
+</html>

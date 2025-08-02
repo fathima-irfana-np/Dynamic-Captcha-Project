@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cognitive CAPTCHA Verification</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6e8efb;
+      --primary-dark: #4d76e8;
+      --secondary: #a777e3;
+      --success: #4CAF50;
+      --error: #f44336;
+      --light-bg: #f8f9fa;
+      --dark-text: #2c3e50;
+      --light-text: #f8f9fa;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: var(--light-bg);
+      color: var(--dark-text);
+      padding: 20px;
+    }
+    
+    h1 {
+      margin-bottom: 30px;
+      color: var(--dark-text);
+      font-size: 2.2rem;
+      text-align: center;
+    }
+    
+    .captcha-container {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      padding: 30px;
+      width: 100%;
+      max-width: 560px;
+      text-align: center;
+    }
+    
+    .status-indicators {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .status-indicator {
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-weight: bold;
+      background: #f0f0f0;
+    }
+    
+    .difficulty-indicator span {
+      color: #0066cc;
+    }
+    
+    #timer-container {
+      background: #fff8e1;
+      display: none;
+    }
+    
+    #attempts-counter {
+      background: #f0f0f0;
+    }
+    
+    #storyCanvas {
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      margin: 0 auto 25px;
+      display: block;
+      background-color: white;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    #questionPanel {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    #questionText {
+      font-size: 1.2rem;
+      margin-bottom: 25px;
+      color: var(--dark-text);
+      font-weight: 500;
+    }
+    
+    .captcha-options {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .captcha-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      min-width: 100px;
+      box-shadow: 0 3px 6px rgba(110,142,251,0.2);
+      font-family: 'Poppins', sans-serif;
+      font-size: 1rem;
+    }
+    
+    .captcha-btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 12px rgba(110,142,251,0.3);
+    }
+    
+    .captcha-result {
+      margin-top: 20px;
+      padding: 12px;
+      border-radius: 8px;
+      display: none;
+      font-weight: 500;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .success {
+      background-color: #dff0d8;
+      color: #3c763d;
+    }
+    
+    .error {
+      background-color: #f2dede;
+      color: #a94442;
+    }
+    
+    .blocked-message {
+      padding: 20px;
+      background: #ffebee;
+      border: 1px solid #ffcdd2;
+      border-radius: 4px;
+      margin-top: 20px;
+    }
+    
+    .blocked-message h3 {
+      color: #c62828;
+      margin-top: 0;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @media (max-width: 600px) {
+      .captcha-container {
+        padding: 20px;
+      }
+      
+      h1 {
+        font-size: 1.8rem;
+      }
+      
+      #storyCanvas {
+        width: 100%;
+        height: auto;
+      }
+      
+      .captcha-options {
+        flex-direction: column;
+      }
+      
+      .captcha-btn {
+        width: 100%;
+      }
+      
+      .status-indicators {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="captcha-container">
+    <h1>Human Verification</h1>
+    
+    <div class="status-indicators">
+      <div id="difficulty-indicator" class="status-indicator difficulty-indicator">
+        Security Level: <span id="difficulty-level">1</span>/3
+      </div>
+      
+      <div id="timer-container" class="status-indicator">
+        Time remaining: <span id="timer">1:00</span>
+      </div>
+      
+      <div id="attempts-counter" class="status-indicator">
+        Attempts: <span id="attempts-count">0</span>/10
+      </div>
+    </div>
+    
+    <canvas id="storyCanvas" width="500" height="300"></canvas>
+    
+    <div id="questionPanel">
+      <p id="questionText"></p>
+      <div id="options" class="captcha-options"></div>
+      <div id="resultMessage" class="captcha-result"></div>
+    </div>
+  </div>
+
+  <script>
+    class CaptchaSystem {
+      constructor() {
+        this.elements = {
+          canvas: document.getElementById('storyCanvas'),
+          questionPanel: document.getElementById('questionPanel'),
+          questionText: document.getElementById('questionText'),
+          optionsDiv: document.getElementById('options'),
+          resultMessage: document.getElementById('resultMessage'),
+          difficultyIndicator: document.getElementById('difficulty-level'),
+          timerContainer: document.getElementById('timer-container'),
+          timerDisplay: document.getElementById('timer'),
+          attemptsCounter: document.getElementById('attempts-count')
+        };
+        
+        this.state = {
+          difficulty: 1,
+          failedAttempts: 0,
+          timer: null,
+          animationId: null
+        };
+        
+        this.init();
+      }
+
+      init() {
+        this.loadCaptcha();
+        this.setupEventListeners();
+      }
+
+      setupEventListeners() {
+        // Track user interaction to prevent automated solving
+        document.addEventListener('click', this.handleUserInteraction.bind(this), { once: true });
+      }
+
+      handleUserInteraction() {
+        if (this.state.failedAttempts > 0) {
+          this.updateUI();
+        }
+      }
+
+      async loadCaptcha() {
+        try {
+          const response = await fetch('/get/', {
+            headers: { 'X-Difficulty': this.state.difficulty }
+          });
+          
+          if (response.status === 403) {
+            this.showBlockedMessage();
+            return;
+          }
+          
+          const data = await response.json();
+          this.state.currentChallenge = data;
+          this.runAnimation(data.animation_data, () => this.showQuestion(data));
+        } catch (error) {
+          console.error('CAPTCHA error:', error);
+          this.showResult('System error. Please refresh.', false);
+        }
+      }
+
+      runAnimation(animationData, callback) {
+        // Clear any existing animation
+        if (this.state.animationId) {
+          cancelAnimationFrame(this.state.animationId);
+        }
+        
+        const { canvas } = this.elements;
+        const ctx = canvas.getContext('2d');
+        const actors = animationData.actors.map(a => ({
+          ...a,
+          x: -50,
+          y: 100 + Math.random() * 100,
+          active: false
+        }));
+        
+        const startTime = Date.now();
+        
+        const animate = () => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = '#f5f5f5';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
+          let allDone = true;
+          const currentTime = Date.now() - startTime;
+          
+          actors.forEach(actor => {
+            if (currentTime >= actor.delay * 1000) {
+              actor.active = true;
+              if (actor.x < canvas.width - 50) {
+                // Adjust speed based on difficulty
+                actor.x += this.state.difficulty >= 2 ? 3 : 2;
+                allDone = false;
+              }
+              this.drawActor(ctx, actor);
+            } else {
+              allDone = false;
+            }
+          });
+          
+          if (allDone) {
+            this.state.animationId = null;
+            setTimeout(callback, 1000);
+          } else {
+            this.state.animationId = requestAnimationFrame(animate);
+          }
+        };
+        
+        this.state.animationId = requestAnimationFrame(animate);
+      }
+
+      drawActor(ctx, actor) {
+        ctx.fillStyle = actor.color;
+        ctx.beginPath();
+        ctx.arc(actor.x, actor.y, 15, 0, Math.PI * 2);
+        ctx.fill();
+        
+        if (actor.object) {
+          const [_, color] = actor.object.split('_');
+          ctx.fillStyle = color;
+          ctx.fillRect(actor.x - 10, actor.y - 30, 20, 20);
+          
+          // Show object label for higher difficulties
+          if (this.state.difficulty >= 2) {
+            ctx.fillStyle = "#000";
+            ctx.font = "10px Arial";
+            ctx.fillText(actor.object.split('_')[0], actor.x - 10, actor.y - 35);
+          }
+        }
+      }
+
+      showQuestion(data) {
+        const { questionText, optionsDiv } = this.elements;
+        questionText.textContent = data.question;
+        optionsDiv.innerHTML = '';
+        
+        // Shuffle options but keep correct answer
+        const options = [...new Set([...data.options, data.correct_answer])]
+          .sort(() => Math.random() - 0.5);
+        
+        options.forEach(option => {
+          const button = document.createElement('button');
+          button.className = 'captcha-btn';
+          button.textContent = option;
+          button.onclick = () => this.verifyAnswer(option === data.correct_answer, data.id);
+          optionsDiv.appendChild(button);
+        });
+        
+        this.elements.questionPanel.style.display = 'block';
+      }
+
+      async verifyAnswer(isCorrect, challengeId) {
+        if (isCorrect) {
+          this.showResult("Verification successful! Redirecting...", true);
+          this.state.failedAttempts = 0;
+          
+          try {
+            await fetch('/submit/', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: challengeId, answer: 'passed' })
+            });
+            
+            setTimeout(() => window.location.href = "/protected/", 1500);
+          } catch (error) {
+            console.error('Submission error:', error);
+            setTimeout(() => window.location.href = "/protected/", 1500);
+          }
+        } else {
+          this.state.failedAttempts++;
+          this.showResult("Incorrect answer. Please try again.", false);
+          
+          if (this.state.failedAttempts >= 10) {
+            this.showBlockedMessage();
+            await this.reportExcessiveAttempts();
+          } else {
+            this.state.difficulty = Math.min(3, Math.floor(this.state.failedAttempts / 3) + 1);
+            setTimeout(() => this.loadCaptcha(), 1500);
+          }
+        }
+        
+        this.updateUI();
+      }
+
+      async reportExcessiveAttempts() {
+        try {
+          await fetch('/report_attempts/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ attempts: this.state.failedAttempts })
+          });
+        } catch (error) {
+          console.error('Failed to report attempts:', error);
+        }
+      }
+
+      updateUI() {
+        const { difficultyIndicator, attemptsCounter, timerContainer } = this.elements;
+        difficultyIndicator.textContent = this.state.difficulty;
+        attemptsCounter.textContent = this.state.failedAttempts;
+        
+        if (this.state.difficulty >= 2) {
+          timerContainer.style.display = 'block';
+          this.startTimer(this.state.difficulty === 2 ? 60 : 45);
+        } else {
+          timerContainer.style.display = 'none';
+          clearInterval(this.state.timer);
+        }
+      }
+
+      startTimer(seconds) {
+        clearInterval(this.state.timer);
+        let timeLeft = seconds;
+        this.updateTimer(timeLeft);
+        
+        this.state.timer = setInterval(() => {
+          timeLeft--;
+          this.updateTimer(timeLeft);
+          
+          if (timeLeft <= 0) {
+            clearInterval(this.state.timer);
+            this.handleTimeout();
+          }
+        }, 1000);
+      }
+
+      updateTimer(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        this.elements.timerDisplay.textContent = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+      }
+
+      handleTimeout() {
+        this.state.failedAttempts++;
+        this.showResult("Time expired! Loading new challenge...", false);
+        this.updateUI();
+        setTimeout(() => this.loadCaptcha(), 1500);
+      }
+
+      showResult(message, isSuccess) {
+        const { resultMessage } = this.elements;
+        resultMessage.textContent = message;
+        resultMessage.className = `captcha-result ${isSuccess ? 'success' : 'error'}`;
+        resultMessage.style.display = 'block';
+      }
+
+      showBlockedMessage() {
+        this.elements.questionPanel.innerHTML = `
+          <div class="blocked-message">
+            <h3>Access Temporarily Blocked</h3>
+            <p>Too many incorrect attempts detected.</p>
+            <p>For security reasons, you'll need to:</p>
+            <ul>
+              <li>Wait , Reload and trying again, or</li>
+              <li>Contact support if this is a mistake</li>
+            </ul>
+          </div>
+        `;
+      }
+    }
+
+    // Initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', () => new CaptchaSystem());
+  </script>
+</body>
+</html>
