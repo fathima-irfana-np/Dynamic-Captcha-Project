@@ -37,7 +37,8 @@ class CaptchaSystem {
     async loadCaptcha() {
         try {
             const response = await fetch('/get/', {
-                headers: { 'X-Difficulty': this.state.difficulty }
+                headers: { 'X-Difficulty': this.state.difficulty },
+                credentials: 'same-origin'
             });
 
             if (response.status === 403) {
@@ -134,21 +135,39 @@ class CaptchaSystem {
 
     async verifyAnswer(isCorrect, challengeId) {
         if (isCorrect) {
-            this.showResult("Success! Redirecting...", true);
-            this.state.failedAttempts = 0;
+            try {
+                const response = await fetch('/submit/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({ id: challengeId, answer: 'passed' }),
+                    credentials: 'same-origin'
+                });
 
-            await fetch('/submit/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: challengeId, answer: 'passed' })
-            });
 
-            setTimeout(() => window.location.href = "/protected/", 1500);
+                const result = await response.json();
+
+                if (result.status === 'passed') {
+                    this.showResult("Success! Redirecting...", true);
+                    this.state.failedAttempts = 0;
+                    setTimeout(() => window.location.href = "/protected/", 1500);
+                } else {
+                    this.showResult("Verification failed. Please try again.", false);
+                    this.state.failedAttempts++;
+                    this.updateUI();
+                    setTimeout(() => this.loadCaptcha(), 1500);
+                }
+            } catch (error) {
+                console.error('Submission error:', error);
+                this.showResult("Error submitting answer. Please try again.", false);
+            }
         } else {
             this.state.failedAttempts++;
             this.showResult("Incorrect. Try again.", false);
 
-            if (this.state.failedAttempts >= 10) {
+            if (this.state.failedAttempts >= 4) {
                 this.showBlockedMessage();
             } else {
                 this.state.difficulty = Math.min(3, Math.floor(this.state.failedAttempts / 3) + 1);
@@ -211,13 +230,28 @@ class CaptchaSystem {
 
     showBlockedMessage() {
         this.elements.questionPanel.innerHTML = `
-            <div class="blocked-message">
-                <h3>Access Blocked</h3>
-                <p>Too many failed attempts. Please try again later.</p>
-            </div>
-        `;
+        <div class="blocked-message">
+            <h3>Too many attempts. Please wait and try again later.</h3>
+            <p>For security reasons, access has been temporarily restricted.</p>
+        </div>
+    `;
     }
 }
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let cookie of document.cookie.split(';')) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => new CaptchaSystem());

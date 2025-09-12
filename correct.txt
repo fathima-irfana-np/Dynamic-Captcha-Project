@@ -114,7 +114,7 @@ html, body {
   cursor: pointer;
   transition: all 0.3s ease;
   display: inline-block;
-  min-width: 100px;   /* ensures consistency */
+  min-width: 120px;   /* ensures consistency */
 }
 
 .captcha-btn:hover {
@@ -346,7 +346,7 @@ html, body {
       }
 
       drawActor(ctx, actor) {
-        const radius = Math.min(24, ctx.canvas.width / 15); // Responsive radius
+        const radius = Math.min(12, ctx.canvas.width / 35); // Responsive radius
         
         ctx.fillStyle = actor.color;
         ctx.beginPath();

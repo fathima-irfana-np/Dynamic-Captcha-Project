@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Dark Theme</title>
+    <style>
+        /* Section spacing */
+.section {
+  position: relative;
+  padding-top: 100px;
+  padding-bottom: 80px;
+}
+
+/* Features Small Item */
+.features-small-item {
+  display: block;
+  background: #fff;
+  text-align: center;
+  border-radius: 20px;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: 0px 2px 15px rgba(0,0,0,0.05);
+  transition: all 0.3s ease 0s;
+}
+
+.features-small-item:hover {
+  box-shadow: 0px 5px 30px rgba(0,0,0,0.15);
+}
+
+.features-small-item .icon {
+  margin-bottom: 20px;
+}
+
+.features-small-item .icon i {
+  display: inline-block;
+  width: 90px;
+  height: 90px;
+  line-height: 90px;
+  border-radius: 50%;
+  background-color: #8261ee;
+  transition: all 0.3s ease 0s;
+}
+
+.features-small-item .icon i img {
+  max-width: 45px;
+  vertical-align: middle;
+}
+
+.features-small-item:hover .icon i {
+  background-color: #ff589e;
+}
+
+.features-small-item .features-title {
+  font-weight: 500;
+  font-size: 18px;
+  color: #1e1e1e;
+  margin-bottom: 15px;
+}
+
+.features-small-item p {
+  font-size: 14px;
+  line-height: 26px;
+  color: #777;
+  margin-bottom: 0px;
+}
+
+/* Bootstrap grid (already in bootstrap.min.css, included here for internal use) */
+.container {
+  width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -15px;
+  margin-left: -15px;
+}
+.col-12, .col-sm-6, .col-md-6, .col-lg-4, .col-lg-12 {
+  position: relative;
+  width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+}
+@media (min-width: 576px) { .col-sm-6 {flex: 0 0 50%; max-width: 50%;}}
+@media (min-width: 768px) { .col-md-6 {flex: 0 0 50%; max-width: 50%;}}
+@media (min-width: 992px) { 
+  .col-lg-4 {flex: 0 0 33.333333%; max-width: 33.333333%;}
+  .col-lg-12 {flex: 0 0 100%; max-width: 100%;}
+}
+        :root {
+            --bg-dark: #edfff4ff;
+            --bg-card:  #047200ff;
+            --primary: #7e57c2;
+            --primary-hover: #9575cd;
+            --text: #e0e0e0;
+            --text-secondary: #6a0202ff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #023700ff;;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ffffffff;;
+        }
+        
+        .login-btn {
+            background-color: var(--primary);
+            color: white;
+            border: black;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 900;
+            transition: background-color 0.3s;
+        }
+        
+        .login-btn:hover {
+            background-color: var(--primary-hover);
+        }
+        
+        .hero {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, var(--primary), #2196f3);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin-bottom: 2rem;
+            color: var(--text-secondary);
+        }
+        
+        .features {
+            display: flex;
+            gap: 2rem;
+            margin-top: 3rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .feature-card {
+            background-color: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 8px;
+            width: 250px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-card h3 {
+            color: #ffffffff;
+            margin-bottom: 0.8rem;
+        }
+        
+        .feature-card p {
+            color: #ffffffff;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            color: var(--text-secondary);
+            background-color: rgba(0, 0, 0, 0.2);
+            margin-top: auto;
+        }
+        
+        /* Login Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color:black;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 101;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 101;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background-color: #2c2c2c;
+            color: var(--text);
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            position: relative;
+            z-index: 101;
+        }
+        
+        .submit-btn:hover {
+            background-color: var(--primary-hover);
+        }
+        
+        /* CAPTCHA Overlay Styles */
+        .captcha-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    /* remove black overlay */
+    background-color: transparent;  
+
+    /* keep the blur effect on whatever is behind */
+    backdrop-filter: blur(8px);
+
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+        
+        .captcha-box {
+            background:rgba(228, 232, 255, 0.95);
+            border-radius: 2rem;
+            padding: 20px;
+            width: 90%;
+            max-width: 560px;
+            max-height: 100vh;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        .captcha-frame {
+            width: 100%;
+            height: 400px;
+            border: none;
+            border-radius: 10px;
+        }
+        
+        /* Hide all other overlay/iframe elements */
+        .overlay, .captcha-window, .captcha-backdrop {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <header>
+  <div class="logo">MontoLonica</div>
+  <button class="login-btn" id="loginBtn"> &nbsp &nbsp LOGIN &nbsp &nbsp </button>
+</header>
+
+<!-- ***** Hero Section Start ***** -->
+<section class="hero">
+  <h1>WELCOME TO MONTOLONICA</h1>
+  <p>
+    Montolonica is a modern, collaborative workspace built to simplify project management and optimize team productivity.
+    It streamlines task tracking, enhances communication, and keeps everyone aligned in real time.
+    Flexible and scalable, Montolonica empowers teams to work smarter—every day.
+  </p>
+
+  <div class="features">
+    <div class="feature-card">
+      <h3>Secure</h3>
+      <p>Your data is encrypted and protected with the latest security measures.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Efficient</h3>
+      <p>Streamlined workflows to help you accomplish more in less time.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Customizable</h3>
+      <p>Tailor the experience to your preferences with our flexible settings.</p>
+    </div>
+  </div>
+</section>
+<!-- ***** Hero Section End ***** -->
+
+<!-- ***** Features Small Start ***** -->
+<section class="section home-feature">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="row">
+
+          <!-- Feature Item 1 -->
+          <div class="col-lg-4 col-md-6 col-sm-6 col-12"
+               data-scroll-reveal="enter bottom move 50px over 0.6s after 0.2s">
+            <div class="features-small-item">
+              <div class="icon">
+                <i><img src="static/featured-item-01.png" alt=""></i>
+              </div>
+              <h5 class="features-title">Modern Strategy</h5>
+              <p>Customize anything in this template to fit your website needs</p>
+            </div>
+          </div>
+
+          <!-- Feature Item 2 -->
+          <div class="col-lg-4 col-md-6 col-sm-6 col-12"
+               data-scroll-reveal="enter bottom move 50px over 0.6s after 0.4s">
+            <div class="features-small-item">
+              <div class="icon">
+                <i><img src="static/featured-item-01.png" alt=""></i>
+              </div>
+              <h5 class="features-title">Best Relationship</h5>
+              <p>Contact us immediately if you have a question in mind</p>
+            </div>
+          </div>
+
+          <!-- Feature Item 3 -->
+          <div class="col-lg-4 col-md-6 col-sm-6 col-12"
+               data-scroll-reveal="enter bottom move 50px over 0.6s after 0.6s">
+            <div class="features-small-item">
+              <div class="icon">
+                <i><img src="static/featured-item-01.png" alt=""></i>
+              </div>
+              <h5 class="features-title">Ultimate Marketing</h5>
+              <p>You just need to tell your friends about our free templates</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ***** Features Small End ***** -->
+
+
+    <footer>
+        <p>&copy; 2023 MontoLonica. All rights reserved.</p>
+    </footer>
+    
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Login to Your Account</h2>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter your username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="submit-btn">Login</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- CAPTCHA Overlay -->
+    <div id="captchaOverlay" class="captcha-overlay">
+        <div class="captcha-box">
+            <iframe id="captchaFrame" src="/captcha_page/" class="captcha-frame" id="captchaFrame" 
+  allowtransparency="true"
+  style="background: transparent;"></iframe>
+        </div>
+    </div>
+    
+    <script>
+        // Modal functionality
+        const loginBtn = document.getElementById('loginBtn');
+        const loginModal = document.getElementById('loginModal');
+        const closeModal = document.getElementById('closeModal');
+        const loginForm = document.getElementById('loginForm');
+        const captchaOverlay = document.getElementById('captchaOverlay');
+        const captchaFrame = document.getElementById('captchaFrame');
+        
+        loginBtn.addEventListener('click', () => {
+            loginModal.style.display = 'flex';
+        });
+        
+        closeModal.addEventListener('click', () => {
+            loginModal.style.display = 'none';
+        });
+        
+        window.addEventListener('click', (e) => {
+            if (e.target === loginModal) {
+                loginModal.style.display = 'none';
+            }
+        });
+        
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username && password) {
+                // Show CAPTCHA overlay
+                captchaOverlay.style.display = 'flex';
+                // Reload the iframe to ensure fresh CAPTCHA
+                captchaFrame.src = captchaFrame.src;
+            }
+        });
+
+        // Listen for CAPTCHA success message from iframe
+        window.addEventListener('message', function(event) {
+            // For security, verify the origin
+            if (event.origin !== window.location.origin) return;
+            
+            if (event.data === 'captchaSuccess') {
+                onCaptchaSuccess();
+            }
+        });
+        
+        function onCaptchaSuccess() {
+            // Hide CAPTCHA overlay
+            captchaOverlay.style.display = 'none';
+            
+            // Store login status and redirect to dashboard
+            const username = document.getElementById('username').value;
+            localStorage.setItem('loggedIn', 'true');
+            localStorage.setItem('username', username);
+            window.location.href = '/protected-page/';
+        }
+    </script>
+</body>
+</html>

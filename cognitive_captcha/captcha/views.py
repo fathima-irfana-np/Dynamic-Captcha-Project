@@ -5,19 +5,27 @@ from django.utils import timezone
 from django.shortcuts import render, redirect
 from .models import CaptchaAttempt, CaptchaChallenge
 import json
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.middleware.csrf import get_token
 import random
 
 def get_identifier(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     return x_forwarded_for.split(',')[0] if x_forwarded_for else request.META.get('REMOTE_ADDR')
 
+@ensure_csrf_cookie
 def captcha_page(request):
+    # get_token(request)   # ensures csrftoken cookie is set
     return render(request, 'captcha_page.html')
 
 def protected_page(request):
     if not request.session.get("captcha_passed", False):
         return redirect('/')
     return render(request, 'protected_page.html')
+
+def first_page(request):
+    # get_token(request) 
+    return render(request, 'first_page.html')
 
 @csrf_protect
 @require_http_methods(["GET"])
@@ -44,9 +52,12 @@ def get_captcha(request):
         **challenge
     })
 
+
 def determine_difficulty(attempts):
-    if attempts >= 6: return 3
-    if attempts >= 3: return 2
+    if attempts >= 3:   # 3rd + 4th attempt → hardest level
+        return 3
+    if attempts >= 2:   # 2nd attempt → medium
+        return 2
     return 1
 
 def generate_challenge(difficulty):
@@ -108,7 +119,7 @@ def submit_captcha_answer(request):
             status = 'passed'
         else:
             attempt.attempts += 1
-            if attempt.attempts >= 10:
+            if attempt.attempts >= 4:
                 attempt.is_blocked = True
                 attempt.blocked_until = timezone.now() + timezone.timedelta(hours=1)
             status = 'failed'
