@@ -107,12 +107,12 @@ def submit_captcha_answer(request):
         if attempt.is_blocked:
             return JsonResponse({'status': 'blocked'}, status=403)
         
-        # ⬇️ replaced DB lookup with session read
+        #replaced DB lookup with session read
         challenge = request.session.get('captcha')
         if not challenge or data.get('id') != challenge.get('id'):
             return JsonResponse({'status': 'invalid'}, status=400)
 
-        # ⬇️ expiry check
+        # expiry check
         if timezone.now() > timezone.datetime.fromisoformat(challenge['expires_at']):
             del request.session['captcha']
             return JsonResponse({'status': 'expired'}, status=400)
@@ -131,7 +131,7 @@ def submit_captcha_answer(request):
             status = 'failed'
         
         attempt.save()
-        # ⬇️ instead of challenge.used = True, just clear session
+        # instead of challenge.used = True, just clear session
         if 'captcha' in request.session:
             del request.session['captcha']
         
