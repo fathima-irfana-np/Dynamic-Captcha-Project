@@ -1,5 +1,0 @@
-button clor
-label item
-adjust speed
-make transparent bg
-last please is in ornge

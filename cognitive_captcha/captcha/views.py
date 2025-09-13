@@ -3,7 +3,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_protect
 from django.utils import timezone
 from django.shortcuts import render, redirect
-from .models import CaptchaAttempt, CaptchaChallenge
+from .models import CaptchaAttempt
 import json
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.middleware.csrf import get_token
@@ -25,8 +25,8 @@ def protected_page(request):
 
 def first_page(request):
     # get_token(request) 
+    
     return render(request, 'first_page.html')
-
 @csrf_protect
 @require_http_methods(["GET"])
 def get_captcha(request):
@@ -38,15 +38,16 @@ def get_captcha(request):
     
     difficulty = determine_difficulty(attempt.attempts)
     challenge = generate_challenge(difficulty)
-    
-    captcha = CaptchaChallenge.objects.create(
-        identifier=identifier,
-        expires_at=timezone.now() + timezone.timedelta(minutes=5),
-        **challenge
-    )
+
+    captcha_id = random.randint(1000, 9999)  # temporary unique ID
+    request.session['captcha'] = {
+        'id': captcha_id,
+        'correct_answer': challenge['correct_answer'],
+        'expires_at': (timezone.now() + timezone.timedelta(minutes=5)).isoformat()
+    }
     
     return JsonResponse({
-        'id': captcha.id,
+        'id': captcha_id,
         'difficulty': difficulty,
         'time_limit': 60 if difficulty >= 2 else None,
         **challenge
@@ -62,24 +63,29 @@ def determine_difficulty(attempts):
 
 def generate_challenge(difficulty):
     params = {
-        1: {'actors': 3, 'speed': 1.0},
-        2: {'actors': 4, 'speed': 1.2},
-        3: {'actors': 5, 'speed': 1.5},
+        1: {'actors': 5, 'speed': 1.0},
+        2: {'actors': 7, 'speed': 1.5},
+        3: {'actors': 10, 'speed': 1.5},
     }[difficulty]
     
     scene = random.choice(['room', 'park', 'street', 'cafe'])
-    colors = ['red', 'green', 'blue', 'yellow']
+    colors = ['red', 'green', 'blue', 'yellow','cyan','lime','orange'] #changed here
     actors = [
         {
             'color': random.choice(colors),
             'delay': i * 0.5,
-            'speed': random.uniform(0.8, 1.2) * params['speed'],
+            'speed': round(random.uniform(0.8, 1.2) * params['speed'], 2) , #we changed here
             'object': f"item_{random.choice(colors)}" if i == 0 else None
         } 
         for i in range(params['actors'])
     ]
     
-    question = "What color was the item?" if random.random() > 0.5 else "Which color moved first?"
+    question = random.choice([
+    "What color was the item?",
+    "Which color appeared last?",
+    "What was the object’s color?",
+])
+
     correct = next(a['object'].split('_')[1] if a['object'] else a['color'] for a in actors if a['object'] or question.endswith('first?'))
     
     return {
@@ -101,17 +107,17 @@ def submit_captcha_answer(request):
         if attempt.is_blocked:
             return JsonResponse({'status': 'blocked'}, status=403)
         
-        try:
-            challenge = CaptchaChallenge.objects.get(
-                id=data['id'],
-                identifier=identifier,
-                expires_at__gt=timezone.now(),
-                used=False
-            )
-        except CaptchaChallenge.DoesNotExist:
+        # ⬇️ replaced DB lookup with session read
+        challenge = request.session.get('captcha')
+        if not challenge or data.get('id') != challenge.get('id'):
             return JsonResponse({'status': 'invalid'}, status=400)
+
+        # ⬇️ expiry check
+        if timezone.now() > timezone.datetime.fromisoformat(challenge['expires_at']):
+            del request.session['captcha']
+            return JsonResponse({'status': 'expired'}, status=400)
         
-        is_correct = str(challenge.correct_answer).lower() == str(data['answer']).lower()
+        is_correct = str(challenge['correct_answer']).lower() == str(data.get('answer')).lower()
         
         if is_correct:
             attempt.attempts = 0
@@ -125,8 +131,9 @@ def submit_captcha_answer(request):
             status = 'failed'
         
         attempt.save()
-        challenge.used = True
-        challenge.save()
+        # ⬇️ instead of challenge.used = True, just clear session
+        if 'captcha' in request.session:
+            del request.session['captcha']
         
         return JsonResponse({
             'status': status,
