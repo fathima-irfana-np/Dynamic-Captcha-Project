@@ -3,7 +3,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 import json
 
-from .models import CaptchaAttempt   # ⬅️ Removed CaptchaChallenge
+from .models import CaptchaAttempt   
 
 
 @admin.register(CaptchaAttempt)

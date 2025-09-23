@@ -22,17 +22,3 @@ class CaptchaAttempt(models.Model):
             defaults={'attempts': 0}
         )
 
-# class CaptchaChallenge(models.Model):
-#     identifier = models.CharField(max_length=255)
-#     scene = models.CharField(max_length=50)
-#     question = models.CharField(max_length=255)
-#     options = models.JSONField()
-#     correct_answer = models.CharField(max_length=50)
-#     animation_data = models.JSONField()
-#     difficulty = models.PositiveIntegerField(default=1)
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     expires_at = models.DateTimeField()
-#     used = models.BooleanField(default=False)
-    
-#     class Meta:
-#         ordering = ['-created_at']
