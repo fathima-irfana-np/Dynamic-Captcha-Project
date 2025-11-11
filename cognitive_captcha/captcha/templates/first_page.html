@@ -1,149 +1,229 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Dark Theme</title>
+    <title>MontoLonica | Professional Collaboration Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Section spacing */
-.section {
-  position: relative;
-  padding-top: 100px;
-  padding-bottom: 80px;
-}
-
-/* Features Small Item */
-.features-small-item {
-  display: block;
-  background: #fff;
-  text-align: center;
-  border-radius: 20px;
-  padding: 30px;
-  margin-bottom: 30px;
-  box-shadow: 0px 2px 15px rgba(0,0,0,0.05);
-  transition: all 0.3s ease 0s;
-}
-
-.features-small-item:hover {
-  box-shadow: 0px 5px 30px rgba(0,0,0,0.15);
-}
-
-.features-small-item .icon {
-  margin-bottom: 20px;
-}
-
-.features-small-item .icon i {
-  display: inline-block;
-  width: 90px;
-  height: 90px;
-  line-height: 90px;
-  border-radius: 50%;
-  background-color: #8261ee;
-  transition: all 0.3s ease 0s;
-}
-
-.features-small-item .icon i img {
-  max-width: 45px;
-  vertical-align: middle;
-}
-
-.features-small-item:hover .icon i {
-  background-color: #ff589e;
-}
-
-.features-small-item .features-title {
-  font-weight: 500;
-  font-size: 18px;
-  color: #1e1e1e;
-  margin-bottom: 15px;
-}
-
-.features-small-item p {
-  font-size: 14px;
-  line-height: 26px;
-  color: #777;
-  margin-bottom: 0px;
-}
-
-/* Bootstrap grid (already in bootstrap.min.css, included here for internal use) */
-.container {
-  width: 100%;
-  padding-right: 15px;
-  padding-left: 15px;
-  margin-right: auto;
-  margin-left: auto;
-}
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  margin-right: -15px;
-  margin-left: -15px;
-}
-.col-12, .col-sm-6, .col-md-6, .col-lg-4, .col-lg-12 {
-  position: relative;
-  width: 100%;
-  padding-right: 15px;
-  padding-left: 15px;
-}
-@media (min-width: 576px) { .col-sm-6 {flex: 0 0 50%; max-width: 50%;}}
-@media (min-width: 768px) { .col-md-6 {flex: 0 0 50%; max-width: 50%;}}
-@media (min-width: 992px) { 
-  .col-lg-4 {flex: 0 0 33.333333%; max-width: 33.333333%;}
-  .col-lg-12 {flex: 0 0 100%; max-width: 100%;}
-}
+        /* ===== CSS VARIABLES ===== */
         :root {
-            --bg-dark: #edfff4ff;
-            --bg-card:  #047200ff;
-            --primary: #7e57c2;
-            --primary-hover: #9575cd;
-            --text: #e0e0e0;
-            --text-secondary: #6a0202ff;
+            /* Green Theme Colors */
+            --primary-50: #f0fdf4;
+            --primary-100: #dcfce7;
+            --primary-200: #bbf7d0;
+            --primary-300: #86efac;
+            --primary-400: #4ade80;
+            --primary-500: #22c55e;
+            --primary-600: #16a34a;
+            --primary-700: #15803d;
+            --primary-800: #166534;
+            --primary-900: #14532d;
+            
+            /* Neutral Colors */
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            
+            /* Spacing */
+            --space-xs: 0.5rem;
+            --space-sm: 1rem;
+            --space-md: 1.5rem;
+            --space-lg: 2rem;
+            --space-xl: 3rem;
+            --space-2xl: 4rem;
+            
+            /* Border Radius */
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            
+            /* Typography */
+            --font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --font-size-xs: 0.75rem;
+            --font-size-sm: 0.875rem;
+            --font-size-base: 1rem;
+            --font-size-lg: 1.125rem;
+            --font-size-xl: 1.25rem;
+            --font-size-2xl: 1.5rem;
+            --font-size-3xl: 1.875rem;
+            --font-size-4xl: 2.25rem;
+            --font-size-5xl: 3rem;
+            
+            /* Transitions */
+            --transition-fast: 0.15s ease-in-out;
+            --transition-base: 0.3s ease-in-out;
+            --transition-slow: 0.5s ease-in-out;
         }
-        
+
+        /* ===== RESET & BASE STYLES ===== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
-            background-color: var(--bg-dark);
-            color: var(--text);
+            font-family: var(--font-family);
+            font-size: var(--font-size-base);
+            line-height: 1.6;
+            color: var(--gray-800);
+            background-color: var(--gray-50);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
-        
+
+        /* ===== TYPOGRAPHY ===== */
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 600;
+            line-height: 1.2;
+            margin-bottom: var(--space-sm);
+            color: var(--gray-900);
+        }
+
+        h1 {
+            font-size: var(--font-size-4xl);
+        }
+
+        h2 {
+            font-size: var(--font-size-3xl);
+        }
+
+        h3 {
+            font-size: var(--font-size-2xl);
+        }
+
+        h4 {
+            font-size: var(--font-size-xl);
+        }
+
+        h5 {
+            font-size: var(--font-size-lg);
+        }
+
+        p {
+            margin-bottom: var(--space-sm);
+            color: var(--gray-600);
+        }
+
+        /* ===== LAYOUT COMPONENTS ===== */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--space-md);
+        }
+
+        .section {
+            padding: var(--space-2xl) 0;
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -15px;
+        }
+
+        .col-12, .col-sm-6, .col-md-6, .col-lg-4, .col-lg-12 {
+            padding: 0 15px;
+            position: relative;
+            width: 100%;
+        }
+
+        @media (min-width: 576px) {
+            .col-sm-6 {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .col-md-6 {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .col-lg-4 {
+                flex: 0 0 33.333333%;
+                max-width: 33.333333%;
+            }
+            .col-lg-12 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+
+        /* ===== HEADER ===== */
         header {
-            padding: 1.5rem;
+            padding: var(--space-md);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background-color: #023700ff;;
+            background-color: white;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: all var(--transition-base);
         }
-        
+
         .logo {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #ffffffff;;
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            color: var(--primary-700);
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
         }
-        
+
+        .logo i {
+            color: var(--primary-500);
+        }
+
         .login-btn {
-            background-color: var(--primary);
+            background-color: var(--primary-500);
             color: white;
-            border: black;
-            padding: 0.8rem 1.5rem;
-            border-radius: 6px;
+            border: none;
+            padding: var(--space-sm) var(--space-lg);
+            border-radius: var(--radius-md);
             cursor: pointer;
-            font-weight: 900;
-            transition: background-color 0.3s;
+            font-weight: 600;
+            transition: all var(--transition-base);
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            box-shadow: var(--shadow-sm);
         }
-        
+
         .login-btn:hover {
-            background-color: var(--primary-hover);
+            background-color: var(--primary-600);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
         }
-        
+
+        /* ===== HERO SECTION ===== */
         .hero {
             flex: 1;
             display: flex;
@@ -151,59 +231,176 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            padding: 2rem;
+            padding: var(--space-2xl) var(--space-md);
+            background: linear-gradient(135deg, var(--primary-50) 0%, var(--primary-100) 100%);
+            position: relative;
+            overflow: hidden;
         }
-        
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2322c55e' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            position: relative;
+            z-index: 1;
+        }
+
         .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            background: linear-gradient(45deg, var(--primary), #2196f3);
+            font-size: var(--font-size-5xl);
+            margin-bottom: var(--space-lg);
+            background: linear-gradient(90deg, var(--primary-600), var(--primary-400));
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
+            line-height: 1.1;
         }
-        
+
         .hero p {
-            font-size: 1.2rem;
-            max-width: 600px;
-            margin-bottom: 2rem;
-            color: var(--text-secondary);
+            font-size: var(--font-size-lg);
+            max-width: 700px;
+            margin: 0 auto var(--space-xl);
+            color: var(--gray-700);
         }
-        
+
         .features {
             display: flex;
-            gap: 2rem;
-            margin-top: 3rem;
+            gap: var(--space-lg);
+            margin-top: var(--space-xl);
             flex-wrap: wrap;
             justify-content: center;
         }
-        
+
         .feature-card {
-            background-color: var(--bg-card);
-            padding: 1.5rem;
-            border-radius: 8px;
-            width: 250px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            padding: var(--space-lg);
+            border-radius: var(--radius-lg);
+            width: 280px;
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-base);
+            border-top: 4px solid var(--primary-500);
+            text-align: center;
         }
-        
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
         .feature-card h3 {
-            color: #ffffffff;
-            margin-bottom: 0.8rem;
+            color: var(--primary-700);
+            margin-bottom: var(--space-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-xs);
         }
-        
+
         .feature-card p {
-            color: #ffffffff;
+            color: var(--gray-600);
+            font-size: var(--font-size-sm);
         }
-        
+
+        /* ===== FEATURES SMALL SECTION ===== */
+        .home-feature {
+            background-color: white;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: var(--space-xl);
+        }
+
+        .section-title h2 {
+            color: var(--gray-900);
+            margin-bottom: var(--space-sm);
+        }
+
+        .section-title p {
+            max-width: 600px;
+            margin: 0 auto;
+            color: var(--gray-600);
+        }
+
+        .features-small-item {
+            display: block;
+            background: white;
+            text-align: center;
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-lg);
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-base);
+            height: 100%;
+            border: 1px solid var(--gray-200);
+        }
+
+        .features-small-item:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-5px);
+        }
+
+        .features-small-item .icon {
+            margin-bottom: var(--space-md);
+        }
+
+        .features-small-item .icon i {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+            transition: all var(--transition-base);
+            margin: 0 auto;
+            color: white;
+            font-size: var(--font-size-2xl);
+        }
+
+        .features-small-item .icon i img {
+            max-width: 45px;
+            vertical-align: middle;
+        }
+
+        .features-small-item:hover .icon i {
+            background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+            transform: scale(1.05);
+        }
+
+        .features-small-item .features-title {
+            font-weight: 600;
+            font-size: var(--font-size-lg);
+            color: var(--gray-900);
+            margin-bottom: var(--space-sm);
+        }
+
+        .features-small-item p {
+            font-size: var(--font-size-sm);
+            line-height: 1.6;
+            color: var(--gray-600);
+            margin-bottom: 0;
+        }
+
+        /* ===== FOOTER ===== */
         footer {
             text-align: center;
-            padding: 1.5rem;
-            color: var(--text-secondary);
-            background-color: rgba(0, 0, 0, 0.2);
+            padding: var(--space-lg);
+            color: var(--gray-600);
+            background-color: var(--gray-100);
+            border-top: 1px solid var(--gray-200);
             margin-top: auto;
         }
-        
-        /* Login Modal */
+
+        /* ===== MODAL ===== */
         .modal {
             display: none;
             position: fixed;
@@ -211,202 +408,318 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            z-index: 100;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
             justify-content: center;
             align-items: center;
+            padding: var(--space-md);
+            backdrop-filter: blur(4px);
         }
-        
+
         .modal-content {
-            background-color:black;
-            padding: 2rem;
-            border-radius: 8px;
+            background-color: white;
+            padding: var(--space-xl);
+            border-radius: var(--radius-lg);
             width: 100%;
-            max-width: 400px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            max-width: 450px;
+            box-shadow: var(--shadow-xl);
+            animation: modalFadeIn 0.3s ease-out;
         }
-        
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
-            position: relative;
-            z-index: 101;
+            margin-bottom: var(--space-lg);
+            padding-bottom: var(--space-sm);
+            border-bottom: 1px solid var(--gray-200);
         }
-        
+
+        .modal-header h2 {
+            color: var(--gray-900);
+            margin: 0;
+            font-size: var(--font-size-2xl);
+        }
+
         .close-btn {
             background: none;
             border: none;
-            color: var(--text);
-            font-size: 1.5rem;
+            color: var(--gray-500);
+            font-size: var(--font-size-2xl);
             cursor: pointer;
+            line-height: 1;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            transition: all var(--transition-fast);
         }
-        
+
+        .close-btn:hover {
+            background-color: var(--gray-100);
+            color: var(--gray-700);
+        }
+
         .form-group {
-            margin-bottom: 1.5rem;
-            position: relative;
-            z-index: 101;
+            margin-bottom: var(--space-lg);
         }
-        
+
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text);
+            margin-bottom: var(--space-xs);
+            font-weight: 500;
+            color: var(--gray-700);
         }
-        
-        .form-group input {
+
+        .form-control {
+            display: block;
             width: 100%;
-            padding: 0.8rem;
-            border-radius: 4px;
-            border: 1px solid #333;
-            background-color: #2c2c2c;
-            color: var(--text);
+            padding: var(--space-sm) var(--space-md);
+            font-size: var(--font-size-base);
+            font-weight: 400;
+            line-height: 1.5;
+            color: var(--gray-700);
+            background-color: white;
+            background-clip: padding-box;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
         }
-        
+
+        .form-control:focus {
+            color: var(--gray-700);
+            background-color: white;
+            border-color: var(--primary-500);
+            outline: 0;
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+        }
+
         .submit-btn {
+            display: block;
             width: 100%;
-            padding: 0.8rem;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+            padding: var(--space-sm) var(--space-md);
+            font-size: var(--font-size-base);
             font-weight: 600;
-            position: relative;
-            z-index: 101;
+            line-height: 1.5;
+            color: white;
+            background-color: var(--primary-500);
+            border: 1px solid var(--primary-500);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-base);
         }
-        
+
         .submit-btn:hover {
-            background-color: var(--primary-hover);
+            background-color: var(--primary-600);
+            border-color: var(--primary-600);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
         }
-        
-        /* CAPTCHA Overlay Styles */
+
+        .submit-btn:focus {
+            outline: 0;
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.3);
+        }
+
+        /* ===== CAPTCHA OVERLAY ===== */
         .captcha-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1100;
+            justify-content: center;
+            align-items: center;
+            
+        }
 
-    /* remove black overlay */
-    background-color: transparent;  
-
-    /* keep the blur effect on whatever is behind */
-    backdrop-filter: blur(8px);
-
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-}
-        
         .captcha-box {
-            background: linear-gradient(135deg, #e0f2ff, #c9e7ff);
-            border-radius: 2rem;
-            padding: 20px;
-            width: 90%;
-            max-width: 580px;
-            max-height: 100vh;
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: var(--space-lg);
+           
+            max-width: 420px;
+            max-height: 90vh;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: var(--shadow-xl);
         }
         
         .captcha-frame {
             width: 100%;
-            height: 416px;
+            height: 555px;
             border: none;
-            border-radius: 10px;
+            border-radius: var(--radius-lg);
         }
-        
-        /* Hide all other overlay/iframe elements */
-        .overlay, .captcha-window, .captcha-backdrop {
-            display: none !important;
+
+        /* ===== RESPONSIVE ADJUSTMENTS ===== */
+        @media (max-width: 992px) {
+            h1 {
+                font-size: var(--font-size-4xl);
+            }
+            
+            .hero h1 {
+                font-size: var(--font-size-4xl);
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: var(--font-size-3xl);
+            }
+            
+            .hero h1 {
+                font-size: var(--font-size-3xl);
+            }
+            
+            .hero p {
+                font-size: var(--font-size-base);
+            }
+            
+            .feature-card {
+                width: 100%;
+                max-width: 350px;
+            }
+            
+            .features {
+                gap: var(--space-md);
+            }
+        }
+
+        @media (max-width: 576px) {
+            header {
+                padding: var(--space-sm);
+            }
+            
+            .logo {
+                font-size: var(--font-size-xl);
+            }
+            
+            .hero {
+                padding: var(--space-xl) var(--space-sm);
+            }
+            
+            .hero h1 {
+                font-size: var(--font-size-2xl);
+            }
+            
+            .section {
+                padding: var(--space-xl) 0;
+            }
+            
+            .modal-content {
+                padding: var(--space-lg);
+            }
         }
     </style>
 </head>
 <body>
     <header>
-  <div class="logo">MontoLonica</div>
-  <button class="login-btn" id="loginBtn"> &nbsp &nbsp LOGIN &nbsp &nbsp </button>
-</header>
-
-<!-- ***** Hero Section Start ***** -->
-<section class="hero">
-  <h1>WELCOME TO MONTOLONICA</h1>
-  <p>
-    Montolonica is a modern, collaborative workspace built to simplify project management and optimize team productivity.
-    It streamlines task tracking, enhances communication, and keeps everyone aligned in real time.
-    Flexible and scalable, Montolonica empowers teams to work smarter—every day.
-  </p>
-
-  <div class="features">
-    <div class="feature-card">
-      <h3>Secure</h3>
-      <p>Your data is encrypted and protected with the latest security measures.</p>
-    </div>
-    <div class="feature-card">
-      <h3>Efficient</h3>
-      <p>Streamlined workflows to help you accomplish more in less time.</p>
-    </div>
-    <div class="feature-card">
-      <h3>Customizable</h3>
-      <p>Tailor the experience to your preferences with our flexible settings.</p>
-    </div>
-  </div>
-</section>
-<!-- ***** Hero Section End ***** -->
-
-<!-- ***** Features Small Start ***** -->
-<section class="section home-feature">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-12">
-        <div class="row">
-
-          <!-- Feature Item 1 -->
-          <div class="col-lg-4 col-md-6 col-sm-6 col-12"
-               data-scroll-reveal="enter bottom move 50px over 0.6s after 0.2s">
-            <div class="features-small-item">
-              <div class="icon">
-                <i><img src="static/featured-item-01.png" alt=""></i>
-              </div>
-              <h5 class="features-title">Modern Strategy</h5>
-              <p>Customize anything in this template to fit your website needs</p>
-            </div>
-          </div>
-
-          <!-- Feature Item 2 -->
-          <div class="col-lg-4 col-md-6 col-sm-6 col-12"
-               data-scroll-reveal="enter bottom move 50px over 0.6s after 0.4s">
-            <div class="features-small-item">
-              <div class="icon">
-                <i><img src="static/featured-item-01.png" alt=""></i>
-              </div>
-              <h5 class="features-title">Best Relationship</h5>
-              <p>Contact us immediately if you have a question in mind</p>
-            </div>
-          </div>
-
-          <!-- Feature Item 3 -->
-          <div class="col-lg-4 col-md-6 col-sm-6 col-12"
-               data-scroll-reveal="enter bottom move 50px over 0.6s after 0.6s">
-            <div class="features-small-item">
-              <div class="icon">
-                <i><img src="static/featured-item-01.png" alt=""></i>
-              </div>
-              <h5 class="features-title">Ultimate Marketing</h5>
-              <p>You just need to tell your friends about our free templates</p>
-            </div>
-          </div>
-
+        <div class="logo">
+            <i class="fas fa-leaf"></i>
+            MontoLonica
         </div>
-      </div>
-    </div>
-  </div>
-</section>
-<!-- ***** Features Small End ***** -->
+        <button class="login-btn" id="loginBtn">
+            <i class="fas fa-sign-in-alt"></i>
+            LOGIN
+        </button>
+    </header>
 
+    <!-- ***** Hero Section Start ***** -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>WELCOME TO MONTOLONICA</h1>
+            <p>
+                Montolonica is a modern, collaborative workspace built to simplify project management and optimize team productivity.
+                It streamlines task tracking, enhances communication, and keeps everyone aligned in real time.
+                Flexible and scalable, Montolonica empowers teams to work smarter—every day.
+            </p>
+
+            <div class="features">
+                <div class="feature-card">
+                    <h3><i class="fas fa-shield-alt"></i> Secure</h3>
+                    <p>Your data is encrypted and protected with the latest security measures.</p>
+                </div>
+                <div class="feature-card">
+                    <h3><i class="fas fa-bolt"></i> Efficient</h3>
+                    <p>Streamlined workflows to help you accomplish more in less time.</p>
+                </div>
+                <div class="feature-card">
+                    <h3><i class="fas fa-cogs"></i> Customizable</h3>
+                    <p>Tailor the experience to your preferences with our flexible settings.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- ***** Hero Section End ***** -->
+
+    <!-- ***** Features Small Start ***** -->
+    <section class="section home-feature">
+        <div class="container">
+            <div class="section-title">
+                <h2>Why Choose MontoLonica?</h2>
+                <p>Discover the features that make our platform the perfect solution for your team</p>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="row">
+                        <!-- Feature Item 1 -->
+                        <div class="col-lg-4 col-md-6 col-sm-6 col-12"
+                            data-scroll-reveal="enter bottom move 50px over 0.6s after 0.2s">
+                            <div class="features-small-item">
+                                <div class="icon">
+                                    <i><img src="static/featured-item-01.png" alt="Modern Strategy"></i>
+                                </div>
+                                <h5 class="features-title">Modern Strategy</h5>
+                                <p>Customize anything in this template to fit your website needs</p>
+                            </div>
+                        </div>
+
+                        <!-- Feature Item 2 -->
+                        <div class="col-lg-4 col-md-6 col-sm-6 col-12"
+                            data-scroll-reveal="enter bottom move 50px over 0.6s after 0.4s">
+                            <div class="features-small-item">
+                                <div class="icon">
+                                    <i><img src="static/featured-item-01.png" alt="Best Relationship"></i>
+                                </div>
+                                <h5 class="features-title">Best Relationship</h5>
+                                <p>Contact us immediately if you have a question in mind</p>
+                            </div>
+                        </div>
+
+                        <!-- Feature Item 3 -->
+                        <div class="col-lg-4 col-md-6 col-sm-6 col-12"
+                            data-scroll-reveal="enter bottom move 50px over 0.6s after 0.6s">
+                            <div class="features-small-item">
+                                <div class="icon">
+                                    <i><img src="static/featured-item-01.png" alt="Ultimate Marketing"></i>
+                                </div>
+                                <h5 class="features-title">Ultimate Marketing</h5>
+                                <p>You just need to tell your friends about our free templates</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- ***** Features Small End ***** -->
 
     <footer>
         <p>&copy; 2023 MontoLonica. All rights reserved.</p>
@@ -422,11 +735,11 @@
             <form id="loginForm">
                 <div class="form-group">
                     <label for="username">Username</label>
-                    <input type="text" id="username" placeholder="Enter your username" required>
+                    <input type="text" id="username" class="form-control" placeholder="Enter your username" required>
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" placeholder="Enter your password" required>
+                    <input type="password" id="password" class="form-control" placeholder="Enter your password" required>
                 </div>
                 <button type="submit" class="submit-btn">Login</button>
             </form>
@@ -436,9 +749,7 @@
     <!-- CAPTCHA Overlay -->
     <div id="captchaOverlay" class="captcha-overlay">
         <div class="captcha-box">
-            <iframe id="captchaFrame" src="/captcha_page/" class="captcha-frame" id="captchaFrame" 
-  allowtransparency="true"
-  style="background: transparent;"></iframe>
+            <iframe id="captchaFrame" src="/captcha_page/" class="captcha-frame" allowtransparency="true"></iframe>
         </div>
     </div>
     

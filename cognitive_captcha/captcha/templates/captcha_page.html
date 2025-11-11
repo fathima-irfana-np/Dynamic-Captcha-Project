@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fixed CAPTCHA Verification</title>
+  <title>AI CAPTCHA Verification</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
 :root{
@@ -68,21 +68,92 @@ html, body {
   font-size: 0.76rem;
   box-shadow: none;
 }
+/* Hide status bars during animation */
+.animation-container:not(.fade-out) ~ #questionPanel .status-indicators {
+    display: none;
+}
+
+/* Show status bars when animation vanishes and MCQ appears */
+.animation-container.fade-out ~ #questionPanel .status-indicators {
+    display: flex;
+}
 
 .animation-container {
-  display: block;
-  margin: 8px auto 12px;
-  width: 400px;
-  height: 250px;
-  max-width: 100%;
-  border-radius: 8px;
-  background-color: #f0f0f0;
-  border: 2px dashed #ccc;
+    display: block;
+    margin: 8px auto 12px;
+    width: 100%;
+    max-width: 280px;
+    height: 500px;
+    border-radius: 12px;
+    background-color: #000;
+    border: 2px solid #666;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* Video styling for perfect 9:16 fit */
+.animation-container video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+    transition: opacity 0.5s ease;
+}
+
+/* Loading state */
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: white;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid #7e57c2;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.4;
+}
+
+/* Make the container responsive */
+@media (max-width: 480px) {
+    .animation-container {
+        max-width: 300px;  /* Increased from 250px */
+        height: 533px;     /* Increased from 445px */
+    }
+}
+
+@media (max-width: 380px) {
+    .animation-container {
+        max-width: 280px;  /* Increased from 220px */
+        height: 498px;     /* Increased from 390px */
+    }
+}
+    
 }
 
 #questionPanel {
   margin-top: 6px;
-  display: block;
+  display: none; /* Hidden until video ends */
 }
 
 .captcha-options {
@@ -94,6 +165,7 @@ html, body {
   width: 100%;
   box-sizing: border-box;
 }
+
 
 .captcha-btn {
   padding: 10px 18px;
@@ -135,9 +207,18 @@ html, body {
   color: red;
 }
 
+/* Fade out animation for video container */
+.fade-out {
+  animation: fadeOut 0.8s forwards;
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; height: 0; margin: 0; }
+}
+
 @media (max-width: 420px) {
   .captcha-container { max-width: 360px; padding: 12px; }
-  .animation-container { width: 100%; height: auto; min-height: 200px; }
   .captcha-btn { flex: 0 1 100%; max-width: 100%; min-width: 0; }
 }
   </style>
@@ -146,22 +227,27 @@ html, body {
   
   <div class="captcha-container">
     <div class="captcha-header">
-      <h1>VERIFY CAPTCHA</h1>
+      <h1><br></h1>
       <div class="status-indicators">
         <div id="difficulty-indicator" class="status-indicator difficulty-indicator">
-          Security Level: <span id="difficulty-level">1</span>/3
+          Security Level: <span id="difficulty-level">1</span>
         </div>
         <div id="timer-container" class="status-indicator">
           Time remaining: <span id="timer">1:00</span>
         </div>
         <div id="attempts-counter" class="status-indicator">
-          Attempts: <span id="attempts-count">0</span>/4
+          Attempts: <span id="attempts-count">0</span>
         </div>
       </div>
     </div>
 
     <div class="captcha-body">
-      <div id="storyCanvas" class="animation-container"></div>
+      <div id="storyCanvas" class="animation-container">
+        <div class="loading-state">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">LOADING CAPTCHA...<br>ANALYZE THE ANIMATION CAREFULLY</div>
+        </div>
+      </div>
       <div id="questionPanel">
         <b><p style="color: black;" id="questionText"></p></b>
         <div id="options" class="captcha-options"></div>
@@ -170,9 +256,6 @@ html, body {
     </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  
   <script>
     // Function to get CSRF token from cookies
     function getCSRFToken() {
@@ -193,15 +276,13 @@ html, body {
 
     class CaptchaSystem {
       constructor() {
-        // Initialize state first
         this.state = {
           difficulty: 1,
           failedAttempts: 0,
           timer: null,
-          animationId: null,
           csrfToken: getCSRFToken(),
-          animationInstance: null,
-          currentChallenge: null
+          currentChallenge: null,
+          videoElement: null
         };
         
         this.elements = {
@@ -219,127 +300,139 @@ html, body {
         this.init();
       }
 
-      adjustCanvasSize() {
-        const container = this.elements.animationContainer;
-        const containerWidth = container.parentElement.clientWidth;
-        const maxWidth = Math.min(400, containerWidth - 40);
-        
-        container.style.width = maxWidth + 'px';
-        container.style.height = (maxWidth * 0.625) + 'px';
-      }
-
       init() {
-        // Hide timer container on first attempt
         this.elements.timerContainer.style.display = 'none';
-        
         this.loadCaptcha();
-        this.setupEventListeners();
-        
-        // Handle window resize
-        window.addEventListener('resize', () => {
-          this.adjustCanvasSize();
-          if (this.state.currentChallenge) {
-            this.runAnimation(this.state.currentChallenge.animation_data, () => this.showQuestion(this.state.currentChallenge));
-          }
-        });
       }
-
-      setupEventListeners() {
-        // Track user interaction to prevent automated solving
-        document.addEventListener('click', this.handleUserInteraction.bind(this), { once: true });
-      }
-
-      handleUserInteraction() {
-        if (this.state.failedAttempts > 0) {
-          this.updateUI();
-        }
-      }
-
-      async loadCaptcha() {
-  try {
-    const response = await fetch("/static/sample.json"); // make sure this path is correct in Django
-    const animationData = await response.json();
-
-    this.state.currentChallenge = {
-      question: "Which object is bouncing?",
-      options: ["Ball", " Box", "Bottle", "Star"],
-      correct_answer: "Ball",
-      id: 1,
-      animation_data: animationData
-    };
-
-    this.runAnimation(animationData, () => {
-      this.showQuestion(this.state.currentChallenge);
-    });
-  } catch (error) {
-    console.error("CAPTCHA error:", error);
-    this.showResult("System error. Please refresh.", false);
-  }
-}
-
-
-      runAnimation(animationData, callback) {
-        // Clear any existing animation
-        this.elements.animationContainer.innerHTML = '';
+      async verifyAnswer(isCorrect, challenge) {
+    if (isCorrect) {
+        this.showResult("Verification successful! Redirecting...", true);
+        this.state.failedAttempts = 0;
         
-        // Ensure Lottie is available
-        if (typeof lottie === 'undefined') {
-          console.error("Lottie library not loaded!");
-          this.showResult("Animation system error", false);
-          return;
-        }
-        
-        this.state.animationInstance = lottie.loadAnimation({
-          container: this.elements.animationContainer,
-          renderer: "svg", // Using SVG renderer for better compatibility
-          loop: 5,
-          autoplay: true,
-          animationData: animationData
-        });
-        
-        // Add event listeners
-        this.state.animationInstance.addEventListener('DOMLoaded', () => {
-          console.log("✅ DOM LOADED - container ready");
-        });
-
-        this.state.animationInstance.addEventListener('data_ready', () => {
-          console.log("✅ DATA READY - animation data parsed");
-        });
-
-        this.state.animationInstance.addEventListener('error', (error) => {
-          console.error("❌ Lottie ERROR:", error);
-          this.showResult("Animation failed to load", false);
-        });
-
-        this.state.animationInstance.addEventListener("complete", () => {
-          console.log("✅ Animation COMPLETED");
-          
-          // GSAP "pop" effect on the container
-          if (typeof gsap !== 'undefined') {
-            gsap.fromTo(this.elements.animationContainer, 
-              { scale: 0.9, opacity: 0 }, 
-              { 
-                scale: 1, 
-                opacity: 1, 
-                duration: 0.6, 
-                ease: "back.out(1.7)",
-                onComplete: () => {
-                  console.log("✅ GSAP animation completed");
-                  // Continue CAPTCHA flow
-                  if (typeof callback === "function") {
-                    console.log("Calling callback function");
-                    callback();
-                  }
+        try {
+            const response = await fetch('/submit/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.state.csrfToken
+                },
+                body: JSON.stringify({
+                    id: challenge.id,
+                    answer: challenge.correct_answer
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.status === 'passed') {
+                if (window.parent !== window) {
+                    window.parent.postMessage('captchaSuccess', window.location.origin);
                 }
-              }
-            );
-          } else {
-            // If GSAP isn't available, just call the callback
-            if (typeof callback === "function") {
-              callback();
             }
+        } catch (error) {
+            console.error('Submission error:', error);
+        }
+    } else {
+        this.state.failedAttempts++;
+        this.showResult("Incorrect answer. Please try again.", false);
+        
+        if (this.state.failedAttempts >= 4) {
+            this.updateUI();
+            this.showBlockedMessage();
+            return;
+        } else {
+            // Wait 2 seconds with error visible, then load new CAPTCHA
+            setTimeout(() => {
+                // Clear the error message and show loading state
+                this.elements.resultMessage.style.display = 'none';
+                this.showLoadingState();
+                this.resetAnimationContainer();
+                this.loadCaptcha();
+            }, 2000);
+        }
+        
+        this.updateUI();
+    }
+}
+      async loadCaptcha() {
+        try {
+          // Show loading state
+          this.showLoadingState();
+          
+          // Simulate loading delay for demonstration
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          
+          const response = await fetch("/get_captcha/");
+          if (!response.ok) {
+            throw new Error('Failed to fetch CAPTCHA');
           }
+          const challengeData = await response.json();
+          
+          this.state.currentChallenge = challengeData;
+          this.runAnimation(challengeData.video_url); // Use video_url, not animation_data
+        } catch (error) {
+          console.error("CAPTCHA error:", error);
+          this.showResult("System error. Please refresh.", false);
+        }
+      }
+
+      showLoadingState() {
+        const container = this.elements.animationContainer;
+        container.innerHTML = `
+          <div class="loading-state">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">LOADING CAPTCHA...<br>ANALYZE THE ANIMATION CAREFULLY</div>
+          </div>
+        `;
+        
+        // Hide question panel during loading
+        this.elements.questionPanel.style.display = 'none';
+      }
+
+      runAnimation(videoUrl) {
+        const container = this.elements.animationContainer;
+        container.innerHTML = '';
+        
+        // Create video element
+        const video = document.createElement('video');
+        video.src = videoUrl;
+        video.controls = false;
+        video.autoplay = true;
+        video.muted = true;
+        video.playsInline = true;
+        video.style.width = '100%';
+        video.style.height = '100%';
+        video.style.objectFit = 'cover';
+        video.style.borderRadius = '10px';
+        
+        // Store reference to video element
+        this.state.videoElement = video;
+        
+        // When video ends, show question and hide video
+        video.addEventListener('ended', () => {
+          this.hideVideoAndShowQuestion();
         });
+        
+        container.appendChild(video);
+        
+        video.play().catch(e => {
+          console.log("Autoplay prevented");
+          video.controls = true;
+        });
+      }
+
+      hideVideoAndShowQuestion() {
+        const container = this.elements.animationContainer;
+        
+        // Add fade-out animation
+        container.classList.add('fade-out');
+        
+        // After animation completes, show question panel
+        setTimeout(() => {
+          container.style.display = 'none';
+          this.elements.questionPanel.style.display = 'block';
+          this.showQuestion(this.state.currentChallenge);
+        }, 800);
       }
 
       showQuestion(data) {
@@ -347,67 +440,27 @@ html, body {
         questionText.textContent = data.question;
         optionsDiv.innerHTML = '';
         
-        // Shuffle options but keep correct answer
-        const options = [...new Set([...data.options, data.correct_answer])]
-          .sort(() => Math.random() - 0.5);
+        // Shuffle options
+        const options = [...data.options].sort(() => Math.random() - 0.5);
         
         options.forEach(option => {
           const button = document.createElement('button');
           button.className = 'captcha-btn';
           button.textContent = option;
-          button.onclick = () => this.verifyAnswer(option === data.correct_answer, data.id);
+          button.onclick = () => this.verifyAnswer(option === data.correct_answer, data);
           optionsDiv.appendChild(button);
         });
-        
-        this.elements.questionPanel.style.display = 'block';
       }
 
-      async verifyAnswer(isCorrect, challengeId) {
-        if (isCorrect) {
-            this.showResult("Verification successful! Redirecting...", true);
-            this.state.failedAttempts = 0;
-            
-            try {
-                // Simulate API call for demo purposes
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                // Notify opener window of success
-                if (window.parent !== window) {
-                  window.parent.postMessage('captchaSuccess', window.location.origin);
-                }
-                // For demo purposes, just show success message
-                this.showResult("CAPTCHA passed! You would be redirected now.", true);
-                
-            } catch (error) {
-                console.error('Submission error:', error);
-                this.showResult("Verification failed. Please try again.", false);
-                setTimeout(() => this.loadCaptcha(), 1500);
-            }
-        } else {
-            this.state.failedAttempts++;
-            this.showResult("Incorrect answer. Please try again.", false);
-            
-            if (this.state.failedAttempts >= 4) {
-                this.showBlockedMessage();
-                await this.reportExcessiveAttempts();
-                return;
-            } else {
-                this.state.difficulty = Math.min(3, Math.floor(this.state.failedAttempts / 3) + 1);
-                setTimeout(() => this.loadCaptcha(), 1500);
-            }
-            
-            this.updateUI();
-        }
-      }
+      
 
-      async reportExcessiveAttempts() {
-        try {
-          // Simulate API call for demo purposes
-          await new Promise(resolve => setTimeout(resolve, 500));
-          console.log("Reported excessive attempts:", this.state.failedAttempts);
-        } catch (error) {
-          console.error('Failed to report attempts:', error);
-        }
+      resetAnimationContainer() {
+        const container = this.elements.animationContainer;
+        container.classList.remove('fade-out');
+        container.style.display = 'block';
+        container.style.opacity = '1';
+        container.style.height = '';
+        container.style.margin = '8px auto 12px';
       }
 
       updateUI() {
@@ -415,17 +468,15 @@ html, body {
         const attemptsSpan = document.getElementById('attempts-count');
         const timerContainer = this.elements.timerContainer;
         
-        // Update only the number spans, not the entire text content
         if (difficultySpan) difficultySpan.textContent = this.state.difficulty;
         if (attemptsSpan) attemptsSpan.textContent = this.state.failedAttempts;
         
-        // Only show timer for difficulty levels 2 and 3 (not for level 1)
         if (this.state.difficulty >= 2) {
-            timerContainer.style.display = 'block';
-            this.startTimer(20);
+          timerContainer.style.display = 'block';
+          this.startTimer(60);
         } else {
-            timerContainer.style.display = 'none';
-            clearInterval(this.state.timer);
+          timerContainer.style.display = 'none';
+          clearInterval(this.state.timer);
         }
       }
 
@@ -466,28 +517,32 @@ html, body {
       }
 
       showBlockedMessage() {
-        this.elements.questionPanel.innerHTML = `
-          <div class="blocked-message">
-            <h3 style="color: red;">Access Temporarily Blocked</h3>
-            <p style="color: red;">Too many incorrect attempts detected.
-            For security reasons, you'll need to wait, reload and try again<br></p>
-            <p style="color: rgba(212, 220, 243, 0.95)">Try again later</p>
-          </div>
-        `;  
-      }
+    // Hide status indicators when blocked
+    document.querySelector('.status-indicators').style.display = 'none';
+    
+    this.elements.questionPanel.innerHTML = `
+        <div class="blocked-message" style="text-align: center; padding: 20px;">
+            <div style="font-size: 48px; color: #ff4444; margin-bottom: 15px;">⛔</div>
+            <h3 style="color: #d32f2f; margin-bottom: 15px; font-size: 1.3rem;">Access Temporarily Restricted</h3>
+            <p style="color: #666; margin-bottom: 10px; line-height: 1.5;">
+                Too many failed verification attempts detected.
+            </p>
+            <p style="color: #666; margin-bottom: 15px; line-height: 1.5;">
+                For security reasons, access has been temporarily restricted.
+            </p>
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px; padding: 12px; margin: 15px 0;">
+                <p style="color: #856404; margin: 0; font-size: 0.9rem;">
+                    <strong>Please try again later.</strong><br>
+                    Contact support if you believe this is an error.
+                </p>
+            </div>
+        </div>
+    `;  
+}
     }
     
-    // Initialize when DOM is ready and libraries are loaded
     document.addEventListener('DOMContentLoaded', function() {
-      // Check if libraries are loaded
-      if (typeof lottie !== 'undefined') {
-        new CaptchaSystem();
-      } else {
-        console.error("Lottie library not loaded");
-        document.getElementById('resultMessage').textContent = "Error loading CAPTCHA system. Please refresh.";
-        document.getElementById('resultMessage').className = "captcha-result error";
-        document.getElementById('resultMessage').style.display = 'block';
-      }
+      new CaptchaSystem();
     });
   </script>
 </body>
