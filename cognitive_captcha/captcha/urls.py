@@ -3,7 +3,7 @@ from . import views
 
 urlpatterns = [
     
-    path('', views.first_page),
+    path('', views.first_page, name='first_page'),
     path("captcha_page.html", views.captcha_page),
     path("captcha_page/", views.captcha_page, name="captcha_page"),
     path('get/', views.get_captcha),
@@ -11,8 +11,9 @@ urlpatterns = [
     path('protected/', views.protected_page),
     # path('api/get-captcha/', views.get_captcha),
     # path('api/verify-captcha/', views.verify_captcha),
-     path('protected-page/', views.protected_page, name='protected-page'),
-
+    path('protected-page/', views.protected_page, name='protected-page'),
+    path('get_captcha/', views.get_captcha, name='get_captcha'),
   
 ]
+
 
