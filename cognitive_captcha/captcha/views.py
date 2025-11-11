@@ -1,27 +1,49 @@
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from django.utils import timezone
 from django.shortcuts import render, redirect
-from .models import CaptchaAttempt
+from .models import CaptchaAttempt, Animation
 import json
-from django.views.decorators.csrf import ensure_csrf_cookie
-from django.middleware.csrf import get_token
 import random
 import os
 from django.conf import settings
+import requests
+import ipaddress
 
-def get_identifier(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    return x_forwarded_for.split(',')[0] if x_forwarded_for else request.META.get('REMOTE_ADDR')
+def get_client_ip(request):
+    """
+    More reliable IP detection with proper proxy handling
+    """
+    ip_headers = [
+        'HTTP_X_REAL_IP',           # Set by your reverse proxy
+        'HTTP_X_FORWARDED_FOR',     # Standard proxy header
+        'REMOTE_ADDR',              # Direct connection
+    ]
+    
+    for header in ip_headers:
+        ip = request.META.get(header)
+        if ip:
+            # Handle X-Forwarded-For comma-separated list
+            if header == 'HTTP_X_FORWARDED_FOR':
+                ips = [ip.strip() for ip in ip.split(',')]
+                ip = ips[0]  # First IP is the original client
+            break
+    else:
+        ip = 'unknown'
+    
+    # Basic IP validation
+    try:
+        ipaddress.ip_address(ip)
+        return ip
+    except ValueError:
+        return 'invalid'
 
 @ensure_csrf_cookie
 def captcha_page(request):
     return render(request, 'captcha_page.html')
 
 def protected_page(request):
-    if not request.session.get("captcha_passed", False):
-        return redirect('/')
     return render(request, 'protected_page.html')
 
 def first_page(request):
@@ -30,14 +52,17 @@ def first_page(request):
 @csrf_protect
 @require_http_methods(["GET"])
 def get_captcha(request):
-    identifier = get_identifier(request)
+    identifier = get_client_ip(request)
     attempt, _ = CaptchaAttempt.get_or_create_for_identifier(identifier)
     
     if attempt.is_blocked and attempt.blocked_until > timezone.now():
         return JsonResponse({'status': 'blocked'}, status=403)
     
     difficulty = determine_difficulty(attempt.attempts)
-    challenge = generate_challenge(difficulty)
+    challenge = generate_challenge_with_ai(difficulty)
+
+    if not challenge:
+        return JsonResponse({'status': 'error', 'message': 'System temporarily unavailable'}, status=500)
 
     captcha_id = random.randint(1000, 9999)
     request.session['captcha'] = {
@@ -50,9 +75,12 @@ def get_captcha(request):
         'id': captcha_id,
         'difficulty': difficulty,
         'time_limit': 60 if difficulty >= 2 else None,
-        **challenge
+        'question': challenge['question'],
+        'options': challenge['options'],
+        'correct_answer': challenge['correct_answer'],
+        'video_url': challenge['video_url'],
+        'ai_generated': challenge['ai_generated']
     })
-
 
 def determine_difficulty(attempts):
     if attempts >= 3:
@@ -61,84 +89,235 @@ def determine_difficulty(attempts):
         return 2
     return 1
 
-def generate_challenge(difficulty):
-    # Define different animations for different difficulty levels
-    animations = {
-        1: 'bouncing_ball.json',  # Simple animation
-        2: 'multiple_bouncing_balls.json',  # Medium complexity
-        3: 'complex_animation.json'  # Complex animation
-    }
-    
-    # For now, use the sample.json for all difficulties
-    # You can replace this with different animations later
-    animation_file = os.path.join(settings.BASE_DIR, 'captcha', 'static', 'sample.json')
+def generate_challenge_with_ai(difficulty):
+    """MAIN FUNCTION: Uses AI for questions with emergency fallback"""
     
     try:
-        with open(animation_file, 'r') as f:
-            animation_data = json.load(f)
-    except FileNotFoundError:
-        # Fallback to a simple animation data structure if file not found
-        animation_data = {"v": "5.12.2", "fr": 30, "ip": 0, "op": 90, "w": 400, "h": 300, "nm": "Sample Animation"}
+        animation = Animation.objects.filter(is_active=True).order_by('?').first()
+        
+        if not animation:
+            return None
+        
+        # TRY AI FIRST (90% of the time - normal operation)
+        ai_question = generate_ai_question(animation.description)
+        
+        if ai_question:
+            return {
+                'question': ai_question['question'],
+                'options': ai_question['options'],
+                'correct_answer': ai_question['correct'],
+                'video_url': f'/animations/{os.path.basename(animation.video_file.name)}',
+                'ai_generated': True
+            }
+        
+        # AI FAILED (10% emergency fallback)
+        print("AI API failed, using emergency fallback")
+        emergency_question = generate_emergency_fallback(animation.description)
+        
+        return {
+            'question': emergency_question['question'],
+            'options': emergency_question['options'],
+            'correct_answer': emergency_question['correct'],
+            'video_url': f'/animations/{os.path.basename(animation.video_file.name)}',
+            'ai_generated': False
+        }
+        
+    except Exception as e:
+        print(f"Error in challenge generation: {e}")
+        return None
+
+def generate_ai_question(description):
+    """PRIMARY AI QUESTION GENERATOR"""
+    prompt = f"""
+    VIDEO DESCRIPTION: {description}
     
-    # Create questions that match the animation content
-    if "bouncy ball" in animation_data.get("nm", "").lower():
-        # Questions for bouncing ball animation
-        question, correct_answer = generate_bouncing_ball_questions()
-        options = generate_options(correct_answer, ["1", "2", "3", "4", "5"])
-    else:
-        # Default questions
-        question = "How many times did the main object bounce?"
-        correct_answer = "2"
-        options = ["1", "2", "3", "4"]
+    Create ONE specific multiple-choice question about what happened in this video.
+    The question must be answerable ONLY by watching the video.
     
-    return {
-        'question': question,
-        'options': options,
-        'correct_answer': correct_answer,
-        'animation_data': animation_data,  # This is the Lottie JSON data
+    Requirements:
+    - Question must be specific to this exact video description
+    - 4 answer options
+    - One clearly correct answer based on the description
+    - Wrong options should be plausible but incorrect
+    
+    Return ONLY JSON format:
+    {{
+        "question": "Specific question about this video scene",
+        "options": ["CorrectAnswer", "Wrong1", "Wrong2", "Wrong3"],
+        "correct": "CorrectAnswer"
+    }}
+    """
+    
+    try:
+        response = requests.post(
+            'https://api.groq.com/openai/v1/chat/completions',
+            headers={'Authorization': f'Bearer {settings.GROQ_API_KEY}'},
+            json={
+                'model': 'llama-3.1-8b-instant',  # ← FIXED MODEL
+                'messages': [{'role': 'user', 'content': prompt}],
+                'temperature': 0.7,
+                'max_tokens': 500
+            },
+            timeout=15
+        )
+        
+        # DEBUGGING ADDED HERE
+        print(f"🔧 API Status: {response.status_code}")
+        if response.status_code != 200:
+            print(f"❌ GROQ ERROR: {response.text}")
+            return None
+        
+        if response.status_code == 200:
+            result = response.json()
+            ai_response = result['choices'][0]['message']['content']
+            
+            # Parse JSON response
+            question_data = json.loads(ai_response)
+            
+            # Validate response
+            if all(key in question_data for key in ['question', 'options', 'correct']):
+                print("✅ AI question generated successfully!")
+                return question_data
+        else:
+            print(f"❌ AI API error: {response.status_code}")
+                
+    except requests.exceptions.Timeout:
+        print("❌ AI API timeout")
+    except requests.exceptions.RequestException as e:
+        print(f"❌ AI API connection error: {e}")
+    except json.JSONDecodeError as e:
+        print(f"❌ AI response parsing error: {e}")
+    except Exception as e:
+        print(f"❌ AI unexpected error: {e}")
+    
+    return None
+
+def generate_emergency_fallback(description):
+    """EMERGENCY FALLBACK (10% cases only) - Uses OpenAI as backup"""
+    print("🔄 Using OpenAI emergency fallback for:", description[:50] + "...")
+    
+    prompt = f"""
+    VIDEO DESCRIPTION: {description}
+    
+    Create ONE specific multiple-choice question about what happened in this video.
+    The question must be answerable ONLY by watching the video.
+    
+    Requirements:
+    - Question must be specific to this exact video description
+    - 4 answer options
+    - One clearly correct answer based on the description
+    - Wrong options should be plausible but incorrect
+    - Return ONLY JSON format, no additional text
+    
+    Return ONLY JSON format:
+    {{
+        "question": "Specific question about this video scene",
+        "options": ["CorrectAnswer", "Wrong1", "Wrong2", "Wrong3"],
+        "correct": "CorrectAnswer"
+    }}
+    """
+    
+    try:
+        print("🔧 Attempting OpenAI API call...")  
+        # Try OpenAI API as backup
+        response = requests.post(
+            'https://api.openai.com/v1/chat/completions',
+            headers={'Authorization': f'Bearer {settings.OPENAI_API_KEY}'},
+            json={
+                'model': 'gpt-3.5-turbo',  # or 'gpt-4' if available
+                'messages': [{'role': 'user', 'content': prompt}],
+                'temperature': 0.7,
+                'max_tokens': 500
+            },
+            timeout=10  # Shorter timeout for fallback
+        )
+        print(f"🔧 OpenAI API Status: {response.status_code}")  
+
+        
+        if response.status_code == 200:
+            result = response.json()
+            ai_response = result['choices'][0]['message']['content']
+            
+            # Parse JSON response
+            question_data = json.loads(ai_response)
+            
+            # Validate response
+            if all(key in question_data for key in ['question', 'options', 'correct']):
+                print("✅ OpenAI fallback question generated successfully!")
+                return question_data
+        else:
+            print(f"❌ OpenAI fallback error: {response.status_code} - {response.text}")
+            
+            
+    except requests.exceptions.Timeout:
+        print("❌ OpenAI fallback timeout")
+    except requests.exceptions.RequestException as e:
+        print(f"❌ OpenAI fallback connection error: {e}")
+    except json.JSONDecodeError as e:
+        print(f"❌ OpenAI fallback response parsing error: {e}")
+    except Exception as e:
+        print(f"❌ OpenAI fallback unexpected error: {e}")
+    
+    # Ultimate fallback - simple context-aware question
+    return generate_ultimate_fallback(description)
+
+def generate_ultimate_fallback(description):
+    """ULTIMATE FALLBACK - Simple context-aware questions if all APIs fail"""
+    description_lower = description.lower()
+    
+    # More context-aware fallbacks based on description keywords
+    keywords_questions = {
+        'ball': [
+            {"question": "What happened to the ball in the video?", "options": ["It was caught", "It rolled away", "It disappeared", "It was thrown"], "correct": "It was caught"},
+            {"question": "What was the main object in this scene?", "options": ["A ball", "A toy", "A fruit", "A book"], "correct": "A ball"}
+        ],
+        'dog': [
+            {"question": "What did the dog do in this video?", "options": ["Ran and played", "Slept quietly", "Ate food", "Barked at something"], "correct": "Ran and played"},
+            {"question": "Where was the animal in this scene?", "options": ["In a park", "Inside a house", "In water", "On a leash"], "correct": "In a park"}
+        ],
+        'child': [
+            {"question": "What was the child doing in this video?", "options": ["Playing outside", "Reading a book", "Eating a snack", "Watching TV"], "correct": "Playing outside"},
+            {"question": "Where was the child in this scene?", "options": ["Outside", "In a classroom", "At a table", "In bed"], "correct": "Outside"}
+        ],
+        'car': [
+            {"question": "What happened with the vehicle in this video?", "options": ["It was parked", "It was moving", "It was being washed", "It was repaired"], "correct": "It was moving"},
+            {"question": "What type of vehicle was in this scene?", "options": ["A car", "A bicycle", "A truck", "A motorcycle"], "correct": "A car"}
+        ],
+        'water': [
+            {"question": "What happened near water in this video?", "options": ["Something was thrown in", "Someone swam", "It was calm", "It was raining"], "correct": "Something was thrown in"},
+            {"question": "What body of water was in this scene?", "options": ["A pond", "A pool", "The ocean", "A puddle"], "correct": "A pond"}
+        ]
     }
-
-def generate_bouncing_ball_questions():
-    """Generate questions specific to bouncing ball animations"""
-    question_types = [
-        ("How many times did the ball bounce?", "2"),
-        ("What color was the bouncing ball?", "purple"),
-        ("What was the main object in the animation?", "ball"),
-        ("Did the ball bounce on a trampoline or floor?", "trampoline")
+    
+    # Find the most relevant keyword
+    for keyword, questions in keywords_questions.items():
+        if keyword in description_lower:
+            return random.choice(questions)
+    
+    # Generic fallback if no keywords match
+    generic_fallbacks = [
+        {"question": "What was the main action in this video?", "options": ["An object moved", "People talked", "Someone waited", "Nothing happened"], "correct": "An object moved"},
+        {"question": "What was the outcome of this scene?", "options": ["Something changed", "Everything stayed the same", "It started over", "It was interrupted"], "correct": "Something changed"},
+        {"question": "What was the primary focus of this video?", "options": ["An object", "A person", "An animal", "A landscape"], "correct": "An object"}
     ]
-    return random.choice(question_types)
-
-def generate_options(correct_answer, possible_options):
-    """Generate multiple choice options including the correct answer"""
-    options = [correct_answer]
     
-    # Add 3 random options that are not the correct answer
-    while len(options) < 4:
-        random_option = random.choice(possible_options)
-        if random_option != correct_answer and random_option not in options:
-            options.append(random_option)
-    
-    # Shuffle the options
-    random.shuffle(options)
-    return options
+    return random.choice(generic_fallbacks)
 
 @csrf_protect
 @require_http_methods(["POST"])
 def submit_captcha_answer(request):
     try:
         data = json.loads(request.body)
-        identifier = get_identifier(request)
+        identifier = get_client_ip(request)
         attempt, _ = CaptchaAttempt.get_or_create_for_identifier(identifier)
         
         if attempt.is_blocked:
             return JsonResponse({'status': 'blocked'}, status=403)
         
-        # replaced DB lookup with session read
         challenge = request.session.get('captcha')
         if not challenge or data.get('id') != challenge.get('id'):
             return JsonResponse({'status': 'invalid'}, status=400)
 
-        # expiry check
         if timezone.now() > timezone.datetime.fromisoformat(challenge['expires_at']):
             del request.session['captcha']
             return JsonResponse({'status': 'expired'}, status=400)
@@ -157,15 +336,18 @@ def submit_captcha_answer(request):
             status = 'failed'
         
         attempt.save()
-        # instead of challenge.used = True, just clear session
+        
         if 'captcha' in request.session:
             del request.session['captcha']
         
         return JsonResponse({
             'status': status,
             'attempts': attempt.attempts,
-            'difficulty': determine_difficulty(attempt.attempts)
+            'difficulty': determine_difficulty(attempt.attempts),
+            'ai_used': challenge.get('ai_generated', True)
         })
         
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
